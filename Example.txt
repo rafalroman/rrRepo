@@ -1,0 +1,69 @@
+= Examples =
+Here are some quick examples of what you can do in LuaD.
+If this makes no sense to you, or you want a more fleshed out explanation, go for the [wiki:Tutorial tutorial].
+=== first-look example ===
+{{{
+#!d
+import LuaD;
+
+import tango.io.Stdout;
+
+void main(char[][] args)
+{
+	auto lua = new LuaState;
+	
+	//Set any value with any key, as long as they're convertible to Lua types, arrays also supported
+	//char[][] is converted to a Lua table of strings
+	lua["ProgramArgs"] = args;
+	
+	//Any D function will work, as long as the argument types and return types are convertible to Lua types
+	lua["printTimes"] = (char[] msg, int times){
+		for(int i = 0; i < times; i++)
+			Stdout(msg);
+		Stdout.newline;
+	};
+	
+	lua.doString(`printTimes("Hello! ", 10)`);
+	
+	//same syntax works for tables
+	{
+		auto table = lua.newTable;
+		table["SomeField"] = "Hello";
+		lua["SomeTable"] = table;
+	}
+	
+	Stdout("SomeTable.SomeField is: ")(LuaString in lua["SomeTable", "SomeField"]).newline;
+	
+	//Grab and call any function
+	auto popen = LuaFunction in lua["io", "popen"];
+	popen(`cmd /C echo "hello world!"`);
+}
+}}}
+----
+=== example using LuaD with the underlying Lua binding ===
+{{{
+#!d
+import LuaD;
+import lua.all; //Raw binding for the Lua C API
+
+/*
+Raw lua functions need to have this prototype to be considered 'raw',
+including having the C calling convention
+*/
+extern(C) int somecfunc(lua_State* L)
+{
+    Stdout(luaL_checkinteger(L, 1)).newline;
+    return 0;
+}
+
+void main()
+{
+    lua["cfunc"] = &somecfunc; //Sets global "cfunc" to our raw Lua function
+
+    //Errors that aren't caught by Lua are thrown as exceptions
+    try lua.doString(`cfunc("Hm, was I supposed to pass a number?")`);
+    catch(LuaErrorException e)
+        Stdout(e.msg).newline;
+}
+}}}
+Errors from LuaState.doString and LuaState.doFile include a stack trace by default, but you can override this by passing 'false' as the second argument when calling them.
