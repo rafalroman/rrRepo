@@ -1,4 +1,5 @@
 linia 1
-linia 2 ddd
-
+zmienilem linie 2
+ta linia byla pusta
+ta linia wstawiona przed lnie 3
 linia 3
