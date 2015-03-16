@@ -1,6 +1,4 @@
-linia -1
-linia zero
-linia jeden
-linia dwa
-linia t
-lnia szósta
+linia 1
+linia 2 ddd
+
+linia 3
